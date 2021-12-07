@@ -25,7 +25,8 @@ def mkdirs(path):
 def invoke(projectDir, outputName):
         
     elan_file = None
-    video_file = None
+    video_files = []
+    audio_files = []
     transcript_file = None
            
     qdpx_output = os.getcwd()
@@ -55,19 +56,27 @@ def invoke(projectDir, outputName):
     for media in project.media_descriptors:
         
         mime = media['MIME_TYPE']
-        if mime == 'video/mp4':
-                   
+        
+        def collect_media(target):
             absolute = media['MEDIA_URL']
             relative = media['RELATIVE_MEDIA_URL']
            
             if os.path.exists(absolute):
-                video_file = absolute
+                target.append(absolute)
             
             elif os.path.exists(relative):
-                video_file = relative
+                target.append(relative)
                 
             else:
-                raise Exception(f"Media file {absolute} or {relative} couldn't be found!")
+                raise Exception(f"Media file {absolute} or {relative} couldn't be found!")           
+        
+        if mime == 'audio/x-wav':
+            collect_media(audio_files)
+        
+        if mime == 'video/mp4':     
+            collect_media(video_files)
+
+        
 
     QDE = elan_to_refi.convert(elan_file, transcript_file)
 
@@ -77,7 +86,12 @@ def invoke(projectDir, outputName):
     sources_file = os.path.join(parent, 'sources')
     mkdirs(sources_file)
 
-    shutil.copy(video_file, sources_file)
+    for video_file in video_files:
+        shutil.copy(video_file, sources_file)
+        
+    for audio_file in audio_files:
+        shutil.copy(audio_file, sources_file)
+    
     shutil.copyfile(transcript_file + ".e2q", os.path.join(sources_file, transcript_file)) 
     
     os.chdir(parent)

@@ -11,6 +11,8 @@ from xml.etree import ElementTree
 import uuid
 import os
 
+from pympi.Elan import Eaf
+
 from annotate import annotate
 
 transcript_file = None
@@ -60,9 +62,7 @@ def parse_annotation_doc(elan_node,refi_node,name):
 
   author = elan_node.attrib['AUTHOR']
   
-  print("AUTHOR ", author) 
   if author == "":
-    print("AUTHOR UNKNOWN")
     author = "Elan2Refi"
   
   Users = ElementTree.Element('Users')
@@ -113,29 +113,43 @@ def create_uuids(elan_root):
 
   return id_uuid
 
+def add_media_sources(Sources,elan_root,refi_root,time_dict,uuid_dict):
+
+    elan = Eaf(file_path=elan_file)
+    
+    for media_descriptor in elan.media_descriptors:
+        
+        mime = media_descriptor['MIME_TYPE']
+        source_path = 'internal://' + media_descriptor['RELATIVE_MEDIA_URL'][2:]
+        
+        if  mime == "video/mp4":
+            VideoSource = ElementTree.Element('VideoSource',{'guid':str(uuid.uuid4()),'path':source_path})
+            #Link the transcript to the REFI file
+            trans_path = 'internal://'+os.path.basename(transcript_file)
+            Transcript = annotate(elan_file,transcript_file)
+            Transcript.set('plainTextPath', trans_path)
+            #Transcript = ElementTree.Element('Transcript',{'guid':str(uuid.uuid4()),'path':trans_path})
+            VideoSource.append(Transcript)
+            
+            parse_annotations_2(VideoSource, elan_root,refi_root,time_dict,uuid_dict)
+            
+            Sources.append(VideoSource)
+            
+            
+            
+        if mime == "audio/x-wav":
+            AudioSource = ElementTree.Element('AudioSource', {'guid': str(uuid.uuid4()), 'path': source_path})
+            Sources.append(AudioSource)
+
+
 #transfer alignable annotations on video source to REFI 'selections'
 def parse_annotations(elan_root,refi_root,time_dict,uuid_dict):
   Sources = ElementTree.Element('Sources')
   refi_root.append(Sources)
 
-  #find ELAN relative file path
-  header = elan_root.find('HEADER')
-  source = header.find('MEDIA_DESCRIPTOR')
-
-  source_path = source.attrib['RELATIVE_MEDIA_URL']
-  source_path = 'internal://'+source_path[2:]
-
-  #Save this source in REFI format
-  VideoSource = ElementTree.Element('VideoSource',{'guid':str(uuid.uuid4()),'path':source_path})
-  Sources.append(VideoSource)
-
-  #Link the transcript to the REFI file
-  trans_path = 'internal://'+os.path.basename(transcript_file)
-  Transcript = annotate(elan_file,transcript_file)
-  Transcript.set('plainTextPath', trans_path)
-  #Transcript = ElementTree.Element('Transcript',{'guid':str(uuid.uuid4()),'path':trans_path})
-  VideoSource.append(Transcript)
+  add_media_sources(Sources,elan_root,refi_root,time_dict,uuid_dict)
   
+def parse_annotations_2(VideoSource, elan_root,refi_root,time_dict,uuid_dict):
   #transfer alignable annotations
   for annot in elan_root.iter('ALIGNABLE_ANNOTATION'):
     id = annot.attrib['ANNOTATION_ID']
