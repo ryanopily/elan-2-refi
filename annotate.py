@@ -37,7 +37,7 @@ def annotate(elan_file, transcript_file):
             # print(f"SYNC time = {timestamp} position = {transcript.tell()}")
             transcript.write(annotation[2] + '\n')
 
-            Sync = ElementTree.Element('SyncPoint', {'position': str(transcript.tell()), 'timeStamp': str(timestamp)})
+            Sync = ElementTree.Element('SyncPoint', {'guid': str(uuid.uuid4()), 'position': str(transcript.tell()), 'timeStamp': str(timestamp)})
             Transcript.append(Sync)
         
         return Transcript

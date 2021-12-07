@@ -59,8 +59,15 @@ def parse_annotation_doc(elan_node,refi_node,name):
   refi_node.set('xsi:schemaLocation','urn:QDA-XML:project:1.0 http://schema.qdasoftware.org/versions/Project/v1.0/Project.xsd')
 
   author = elan_node.attrib['AUTHOR']
+  
+  print("AUTHOR ", author) 
+  if author == "":
+    print("AUTHOR UNKNOWN")
+    author = "Elan2Refi"
+  
   Users = ElementTree.Element('Users')
   refi_node.append(Users)
+  
   User = ElementTree.Element('User',{'name':author,'guid':str(uuid.uuid4())})
   Users.append(User)
 
@@ -116,14 +123,14 @@ def parse_annotations(elan_root,refi_root,time_dict,uuid_dict):
   source = header.find('MEDIA_DESCRIPTOR')
 
   source_path = source.attrib['RELATIVE_MEDIA_URL']
-  source_path = 'sources/'+source_path[2:]
+  source_path = 'internal://'+source_path[2:]
 
   #Save this source in REFI format
   VideoSource = ElementTree.Element('VideoSource',{'guid':str(uuid.uuid4()),'path':source_path})
   Sources.append(VideoSource)
 
   #Link the transcript to the REFI file
-  trans_path = 'sources/'+os.path.basename(transcript_file)
+  trans_path = 'internal://'+os.path.basename(transcript_file)
   Transcript = annotate(elan_file,transcript_file)
   Transcript.set('path', trans_path)
   #Transcript = ElementTree.Element('Transcript',{'guid':str(uuid.uuid4()),'path':trans_path})
