@@ -132,7 +132,7 @@ def parse_annotations(elan_root,refi_root,time_dict,uuid_dict):
   #Link the transcript to the REFI file
   trans_path = 'internal://'+os.path.basename(transcript_file)
   Transcript = annotate(elan_file,transcript_file)
-  Transcript.set('path', trans_path)
+  Transcript.set('plainTextPath', trans_path)
   #Transcript = ElementTree.Element('Transcript',{'guid':str(uuid.uuid4()),'path':trans_path})
   VideoSource.append(Transcript)
   
