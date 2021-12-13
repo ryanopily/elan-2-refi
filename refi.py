@@ -4,23 +4,10 @@ import argparse
 
 from zipfile import ZipFile
 
+from refi_common import parentFolder, stripPath, mkdirs
+
 import pympi
 import elan_to_refi
-
-""" Gets parent directory of a file """
-def parentFolder(file):
-    parent = os.path.join(file, os.pardir)
-    return os.path.abspath(parent)
-    
-""" Gets filename and extension """
-def stripPath(path):
-    basename = os.path.basename(path)
-    return os.path.splitext(basename)
-    
-""" Create folder and parent directories if they don't exist"""
-def mkdirs(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
   
 def invoke(projectDir, outputName):
         
@@ -78,7 +65,7 @@ def invoke(projectDir, outputName):
 
         
 
-    QDE = elan_to_refi.convert(elan_file, transcript_file)
+    QDE = elan_to_refi.convert(elan_file)
 
     # Create folder for QDPX file
     parent = 'elan2refi'
@@ -92,7 +79,7 @@ def invoke(projectDir, outputName):
     for audio_file in audio_files:
         shutil.copy(audio_file, sources_file)
     
-    shutil.copyfile(transcript_file + ".e2q", os.path.join(sources_file, transcript_file)) 
+    shutil.copyfile(transcript_file, os.path.join(sources_file, transcript_file)) 
     
     os.chdir(parent)
     QDE.write(qde_file,encoding='utf-8',xml_declaration=True)
