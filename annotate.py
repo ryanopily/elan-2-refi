@@ -17,10 +17,12 @@ def annotate(elan, transcript_file):
         timeslots = elan.timeslots
         timeslots = dict(sorted(timeslots.items(), key = lambda kv: kv[1]))
 
-        TS = elan.tiers['TS-Contribution'][0]
-        AS = elan.tiers['AS-Contribution'][0]
+        TS = elan.tiers['TS Sp/V Contrib'][0]
+        AS = elan.tiers['AS Sp/V Contrib'][0]
+        ASC = elan.tiers['AS AAC Contribution'][0]
 
         TS.update(AS)
+        TS.update(ASC)
         TS = sorted(TS.items(), key = lambda kv: timeslots[kv[1][0]])
          
         Transcript = ElementTree.Element('Transcript', {'guid': str(uuid.uuid4())})

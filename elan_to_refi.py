@@ -33,7 +33,7 @@ def convert(elan_file):
     Project.append(node_graph['Sources'])
     
     result = ElementTree.ElementTree(Project)
-    ElementTree.indent(result, space="\t", level=0)
+    # ElementTree.indent(result, space="\t", level=0)
     
     return result
     
@@ -96,14 +96,18 @@ def parse_annotations(elan, node_graph):
         mime = media['MIME_TYPE']
         source_path = 'internal://' + media['RELATIVE_MEDIA_URL'][2:]
        
+        Transcript = None
+
         if mime == "video/mp4":
             VideoSource = ElementTree.Element('VideoSource',{'guid':str(uuid.uuid4()),'path':source_path})
-            
-            transcript_path = elan.file_name + "_transcript.txt"
-            Transcript = annotate(elan, transcript_path)
+
+            if Transcript == None:
+                transcript_path = elan.file_name + "_transcript.txt"
+                Transcript = annotate(elan, transcript_path)
+
             Transcript.set('plainTextPath', 'internal://' + transcript_path)
-            
             VideoSource.append(Transcript)
+
             Sources.append(VideoSource)
             add_video_selections(elan, VideoSource, node_graph['Project'])
             

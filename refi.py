@@ -11,6 +11,7 @@ import elan_to_refi
   
 def invoke(projectDir, outputName):
         
+    elan_name = None
     elan_file = None
     video_files = []
     audio_files = []
@@ -28,16 +29,17 @@ def invoke(projectDir, outputName):
             
             if extension == '.eaf':
                 elan_file = file
-            elif extension == '.txt':
-                transcript_file = file
+                elan_name = name
+                break
         
     if elan_file is None:
         raise Exception(f"No ELAN (EAF) project file found!\n Found: {files}")
-        
-    if transcript_file is None:
-        raise Exception(f"No transcript file found!\n Found: {files}")
 
+    QDE = elan_to_refi.convert(elan_file)
     project = pympi.Elan.Eaf(elan_file)
+
+    transcript_file = name + "_transcript.txt"
+
 
     # Search for video file
     for media in project.media_descriptors:
@@ -62,10 +64,6 @@ def invoke(projectDir, outputName):
         
         if mime == 'video/mp4':     
             collect_media(video_files)
-
-        
-
-    QDE = elan_to_refi.convert(elan_file)
 
     # Create folder for QDPX file
     parent = 'elan2refi'
