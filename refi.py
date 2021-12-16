@@ -68,15 +68,10 @@ def invoke(projectDir, outputName):
     # Create folder for QDPX file
     parent = 'elan2refi'
     qde_file = 'project.qde'
+
     sources_file = os.path.join(parent, 'sources')
     mkdirs(sources_file)
 
-    for video_file in video_files:
-        shutil.copy(video_file, sources_file)
-        
-    for audio_file in audio_files:
-        shutil.copy(audio_file, sources_file)
-    
     shutil.copyfile(transcript_file, os.path.join(sources_file, transcript_file)) 
     
     os.chdir(parent)

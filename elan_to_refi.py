@@ -46,6 +46,7 @@ def parse_annotation_doc(elan, node_graph):
   Project.set('xmlns','urn:QDA-XML:project:1.0')
   Project.set('xmlns:xsi','http://www.w3.org/2001/XMLSchema-instance')
   Project.set('name', name)
+  Project.set('basePath', parentFolder(elan.file_path))
   Project.set('xsi:schemaLocation','urn:QDA-XML:project:1.0 http://schema.qdasoftware.org/versions/Project/v1.0/Project.xsd')
   
   def create_user(name):
@@ -94,7 +95,7 @@ def parse_annotations(elan, node_graph):
     for media in elan.media_descriptors:
        
         mime = media['MIME_TYPE']
-        source_path = 'internal://' + media['RELATIVE_MEDIA_URL'][2:]
+        source_path = 'relative:///' + media['RELATIVE_MEDIA_URL'][2:]
        
         Transcript = None
 
@@ -104,8 +105,8 @@ def parse_annotations(elan, node_graph):
             if Transcript == None:
                 transcript_path = elan.file_name + "_transcript.txt"
                 Transcript = annotate(elan, transcript_path)
+                Transcript.set('plainTextPath', 'internal://' + transcript_path)
 
-            Transcript.set('plainTextPath', 'internal://' + transcript_path)
             VideoSource.append(Transcript)
 
             Sources.append(VideoSource)
