@@ -15,29 +15,36 @@ def annotate(elan, transcript_file):
     
         # Sort by timestamps - helps us order annotations
         timeslots = elan.timeslots
-        timeslots = dict(sorted(timeslots.items(), key = lambda kv: kv[1]))
 
-        TS = elan.tiers['TS Sp/V Contrib'][0]
-        AS = elan.tiers['AS Sp/V Contrib'][0]
-        ASC = elan.tiers['AS AAC Contribution'][0]
+        TS = []
+        elan_root = ElementTree.parse(elan.file_path).getroot()
 
-        TS.update(AS)
-        TS.update(ASC)
-        TS = sorted(TS.items(), key = lambda kv: timeslots[kv[1][0]])
+        for annot in elan_root.iter('ALIGNABLE_ANNOTATION'):
+            begin = timeslots[annot.attrib['TIME_SLOT_REF1']]
+            val = annot.find('ANNOTATION_VALUE').text
+            
+            if val == None:
+              val = ''
+
+            #if annotation has cv reference, add code as child of selection
+            if 'CVE_REF' not in annot.attrib.keys():
+                TS.append((begin, val))
+
+        TS = sorted(TS, key = lambda kv: kv[0])
          
         Transcript = ElementTree.Element('Transcript', {'guid': str(uuid.uuid4())})
 
 		# Tier = tuple(timeslotID start, timeslotID end, transcript text)
         for annotation in TS:
 
-            annotation = annotation[1]
-            timestamp = timeslots[annotation[0]]
+            text = annotation[1]
+            timestamp = annotation[0]
 
             # print(annotation)
-            # print(f"SYNC time = {timestamp} position = {transcript.tell()}")
+            # print(f"SYNC time = {timestamp} position = {transcript.tell()} TEXT={text}")
 
             Sync = ElementTree.Element('SyncPoint', {'guid': str(uuid.uuid4()), 'position': str(transcript.tell()), 'timeStamp': str(timestamp)})
-            transcript.write(annotation[2] + '\n')
+            transcript.write(text + '\n')
             
             Transcript.append(Sync)
 
