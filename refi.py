@@ -10,35 +10,41 @@ import pympi
 import elan_to_refi
   
 def invoke(projectDir, outputName):
-        
+    
     elan_name = None
     elan_file = None
+    pfsx_file = None
+    transcript_file = None
+
     video_files = []
     audio_files = []
-    transcript_file = None
-           
+    
     qdpx_output = os.getcwd()
-
-    files = os.listdir(projectDir) 
+    project_files = os.listdir(projectDir) 
     os.chdir(projectDir)
 
-    # Search for ELAN and Transcription file
-    for file in files:
+    # Search for ELAN project and preferences files
+    for file in project_files:
         if os.path.isfile(file):
             name, extension = os.path.splitext(file)
             
             if extension == '.eaf':
                 elan_file = file
                 elan_name = name
-                break
+
+            elif extension == '.pfsx':
+                pfsx_file = file
         
     if elan_file is None:
-        raise Exception(f"No ELAN (EAF) project file found!\n Found: {files}")
+        raise Exception(f"No ELAN (EAF) project file found!\n Found: {project_files}")
 
-    QDE = elan_to_refi.convert(elan_file)
+    if pfsx_file is None:
+        raise Exception(f"No ELAN (PFSX) preferences file found!\n Found: {project_files}")
+
+    QDE = elan_to_refi.convert(elan_file, pfsx_file)
     project = pympi.Elan.Eaf(elan_file)
 
-    transcript_file = name + "_transcript.txt"
+    transcript_file = name + ".txt"
 
 
     # Search for video file

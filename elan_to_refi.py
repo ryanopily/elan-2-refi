@@ -9,11 +9,12 @@ from annotate import annotate
 
 # Code refractored from Elizabeth's original implementation to use PYMPI, to make the code more readable
 
-def convert(elan_file):
+def convert(elan_file, pfsx_file):
 
     # See pympi-ling for documentation
     elan = Eaf(file_path=elan_file)
     elan.file_path = elan_file
+    elan.pfsx_path = pfsx_file
     elan.file_name, extension = stripPath(elan.file_path)
 
     Project = ElementTree.Element('Project')
@@ -108,8 +109,8 @@ def parse_annotations(elan, node_graph):
                 Transcript.set('plainTextPath', 'internal://' + transcript_path)
 
             VideoSource.append(Transcript)
-
             Sources.append(VideoSource)
+
             add_video_selections(elan, VideoSource, node_graph['Project'])
             
         if mime == 'audio/x-wav':
