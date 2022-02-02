@@ -1,16 +1,19 @@
 # Elan-2-Refi
-This project attempts to convert ELAN EAF files to the REFI-QDA QDPX format.  
+This project attempts to convert ELAN EAF files to the REFI-QDA QDPX format,  
+so that data collected using ELAN can be used in other qualitative analysis software.
   
 ## Usage
 The refi.py file is the command-line script.  
-You must provide the file path of the EAF file OR the folder it is contained in.  
   
 USAGE:  
-python refi.py -f {eaf file path} -o {qdpx archive name}  
+python refi.py -f {eaf file input path} -o {qdpx archive output path}  
   
 ARGUMENTS:  
--f  path to EAF project file / folder  
--o  name of QDPX archive that will be created  
+-f  path to EAF project file / folder that the project is contained in
+-o  path of the QDPX archive that will be created  
+  
+EXAMPLE:  
+python refi.py  -f C:\Users\ryanopily\ELAN-PROJECT\elan-project.eaf -o C:\Users\ryanopily\ELAN-PROJECT\elan-project.qdpx. 
   
 ## Dependencies
 [pympi-ling](https://pypi.org/project/pympi-ling/)
