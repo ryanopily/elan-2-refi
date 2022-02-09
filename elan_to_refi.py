@@ -64,27 +64,14 @@ def parse_annotation_doc(elan, node_graph):
   
 def transfer_codes(elan, node_graph):
     
-    def get_vocab():
-        result = {}
-        cvs = elan.controlled_vocabularies
-        for id in cvs:
-            cv = cvs[id][1:-1]
-            
-            for cve in cv:
-                for id2 in cve:
-                    value = cve[id2][0][0][0]
-                    result[id2] = value
-                    
-        return result
-    
     CodeBook = ElementTree.Element('CodeBook')
     node_graph['CodeBook'] = CodeBook
+    node_graph['__codings__'] = {}
     
-    Codes = ElementTree.Element('Codes')
-    vocab = get_vocab()
-                    
-    for code in vocab.keys():
-        Code = ElementTree.Element('Code', {'guid': code[6:], 'name': vocab[code], 'isCodable':'true'})
+    Codes = ElementTree.Element('Codes')    
+    for tier in elan.get_tier_names():
+        node_graph['__codings__'][tier] = str(uuid.uuid4())
+        Code = ElementTree.Element('Code', {'guid': node_graph['__codings__'][tier], 'name': tier, 'isCodable':'true'})
         Codes.append(Code)
         
     CodeBook.append(Codes)
@@ -111,63 +98,50 @@ def parse_annotations(elan, node_graph):
             VideoSource.append(Transcript)
             Sources.append(VideoSource)
 
-            add_video_selections(elan, VideoSource, node_graph['Project'])
+            add_video_selections(elan, VideoSource, node_graph['Project'], node_graph)
             
         if mime == 'audio/x-wav':
             AudioSource = ElementTree.Element('AudioSource', {'guid': str(uuid.uuid4()), 'path': source_path})
             Sources.append(AudioSource)
   
 # This section of code works best without using pympi
-def add_video_selections(elan, VideoSource, refi_root):
-    elan_root = ElementTree.parse(elan.file_path).getroot()
-    
+def add_video_selections(elan, VideoSource, refi_root, node_graph):
+
+    annotations = {}
+    references = {}
     timeslots = elan.timeslots
-    timeslots = dict(sorted(timeslots.items(), key = lambda kv: kv[1]))
-    
-    for annot in elan_root.iter('ALIGNABLE_ANNOTATION'):
-        id = annot.attrib['ANNOTATION_ID']
-        guid = str(uuid.uuid4())
-        begin = str(timeslots[annot.attrib['TIME_SLOT_REF1']])
-        end = str(timeslots[annot.attrib['TIME_SLOT_REF2']])
-        val = annot.find('ANNOTATION_VALUE').text
-        if val == None:
-          val = ''
-       
-        #store these attributes in refi format
-        ref_elem = ElementTree.Element('VideoSelection',{'guid':guid,'begin':begin,'end':end,'name':val})
-        VideoSource.append(ref_elem)
 
-        #if annotation has cv reference, add code as child of selection
-        if 'CVE_REF' in annot.attrib.keys():
-          cv = annot.attrib['CVE_REF']
-          Coding = ElementTree.Element('Coding',{'guid':str(uuid.uuid4())})
-          ref_elem.append(Coding)
-          CodeRef = ElementTree.Element('CodeRef',{'targetGUID':cv[6:]})
-          Coding.append(CodeRef)
+    for tier_name, tier in elan.tiers.items():
 
-    #transfer ref annotations
-    for annot in elan_root.iter('REF_ANNOTATION'):
-        id = annot.attrib['ANNOTATION_ID']
-        guid = str(uuid.uuid4())
-        val = annot.find('ANNOTATION_VALUE').text
-        if val == None:
-          val = ''
-        cv = annot.attrib.get('CVE_REF','')
-    
-        #retrieve parent time stamp before adding new selection
-        parent_id = annot.attrib['ANNOTATION_REF']
-        for nodes in refi_root.findall('VideoSelection'):
-            if node.attrib['guid']==id:
-                begin = node.attrib['begin']
-                end = node.attrib['end']
-                break
+        annotations[tier_name] = {}
+        references[tier_name] = {}
 
-        #store these attributes in refi format
-        ref_elem = ElementTree.Element('VideoSelection',{'guid':guid,'begin':begin,'end':end,'name':val})
-        VideoSource.append(ref_elem)
+        for aligned_id, aligned in tier[0].items():
+            annotations[tier_name][aligned_id] = aligned
 
-        #if annotation has cv reference, add code as child of selection
-        Coding = ElementTree.Element('Coding',{'guid':str(uuid.uuid4())})
-        ref_elem.append(Coding)
-        CodeRef = ElementTree.Element('CodeRef',{'targetGUID':cv[6:]})
-        Coding.append(CodeRef)
+        for reference_id, reference in tier[1].items():
+            references[tier_name][reference_id] = reference
+
+    for tier_name, annotation_dict in annotations.items():
+        for annotation_id, annotation in annotation_dict.items():
+            begin = str(timeslots[annotation[0]])
+            end   = str(timeslots[annotation[1]])
+            value = str(annotation[2])
+
+            annotation += (str(uuid.uuid4()),)
+
+            selection = ElementTree.Element('VideoSelection', {'guid': annotation[4], 'begin': begin, 'end': end, 'name': value})
+            VideoSource.append(selection)
+
+    for tier_name, reference_dict in references.items():
+        for reference_id, reference in reference_dict.items():
+            annotation_id = reference[0]
+            value = reference[1]
+
+            for tier_name, annotation_dict in annotations.items():
+                if annotation_id in annotation_dict:
+                    begin = annotation_dict[annotation_id][0]
+                    end   = annotation_dict[annotation_id][1]
+
+            selection = ElementTree.Element('VideoSelection',{'guid':str(uuid.uuid4()),'begin':begin,'end':end,'name':value})
+            VideoSource.append(selection)
