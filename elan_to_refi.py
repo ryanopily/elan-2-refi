@@ -133,6 +133,11 @@ def add_video_selections(elan, VideoSource, refi_root, node_graph):
             selection = ElementTree.Element('VideoSelection', {'guid': annotation[4], 'begin': begin, 'end': end, 'name': value})
             VideoSource.append(selection)
 
+            Coding = ElementTree.Element('Coding', {'guid': str(uuid.uuid4())})
+            selection.append(Coding)
+            CodeRef = ElementTree.Element('CodeRef', {'targetGUID': node_graph['__codings__'][tier_name]})
+            Coding.append(CodeRef)
+
     for tier_name, reference_dict in references.items():
         for reference_id, reference in reference_dict.items():
             annotation_id = reference[0]
@@ -140,8 +145,13 @@ def add_video_selections(elan, VideoSource, refi_root, node_graph):
 
             for tier_name, annotation_dict in annotations.items():
                 if annotation_id in annotation_dict:
-                    begin = annotation_dict[annotation_id][0]
-                    end   = annotation_dict[annotation_id][1]
+                    begin = str(timeslots[annotation_dict[annotation_id][0]])
+                    end   = str(timeslots[annotation_dict[annotation_id][1]])
 
             selection = ElementTree.Element('VideoSelection',{'guid':str(uuid.uuid4()),'begin':begin,'end':end,'name':value})
             VideoSource.append(selection)
+
+            Coding = ElementTree.Element('Coding', {'guid': str(uuid.uuid4())})
+            selection.append(Coding)
+            CodeRef = ElementTree.Element('CodeRef', {'targetGUID': node_graph['__codings__'][tier_name]})
+            Coding.append(CodeRef)
