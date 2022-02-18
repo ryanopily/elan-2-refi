@@ -69,12 +69,36 @@ def transfer_codes(elan, node_graph):
     node_graph['__codings__'] = {}
     
     Codes = ElementTree.Element('Codes')    
-    for tier in elan.get_tier_names():
-        node_graph['__codings__'][tier] = str(uuid.uuid4())
-        Code = ElementTree.Element('Code', {'guid': node_graph['__codings__'][tier], 'name': tier, 'isCodable':'true'})
-        Codes.append(Code)
-        
     CodeBook.append(Codes)
+  
+    tiers = [tier for tier in elan.get_tier_names() if 'PARENT_REF' not in elan.get_parameters_for_tier(tier).keys()]
+    # Codes for tiers
+    for tier in tiers:
+        def create_tier(tier_name):
+            node_graph['__codings__'][tier_name] = str(uuid.uuid4())
+            Code = ElementTree.Element('Code', {'guid': node_graph['__codings__'][tier_name], 'name': tier_name, 'isCodable':'true'})
+            return Code
+        
+        Parent = create_tier(tier)
+        Codes.append(Parent)
+
+        Independent = create_tier(tier)
+        Parent.append(Independent)
+
+        for child in elan.get_child_tiers_for(tier):
+            Child = create_tier(child)
+            Parent.append(Child)
+
+
+
+    # # Code categories for Controlled Vocabulary
+    # for cv in elan.get_controlled_vocabulary_names():
+    #     Category = ElementTree.Element('Code', {'guid': str(uuid.uuid4()), 'name': cv, 'isCodable': 'true'})
+    #     Codes.append(Category)
+
+    #     for cve_id, description in elan.get_cv_entries(cv).items():
+    #         Code = ElementTree.Element('Code', {'guid': cve_id[6:], 'name': description[0][0][0], 'isCodable': 'true'})
+    #         Category.append(Code)
 
 def parse_annotations(elan, node_graph):
     Sources = ElementTree.Element('Sources')
@@ -104,6 +128,8 @@ def parse_annotations(elan, node_graph):
             AudioSource = ElementTree.Element('AudioSource', {'guid': str(uuid.uuid4()), 'path': source_path})
             Sources.append(AudioSource)
   
+
+
 # This section of code works best without using pympi
 def add_video_selections(elan, VideoSource, refi_root, node_graph):
 
