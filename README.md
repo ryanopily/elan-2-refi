@@ -1,32 +1,28 @@
 # Elan-2-Refi
-This project attempts to convert ELAN EAF files to the REFI-QDA QDPX format,  
-so that data collected using ELAN can be used in other qualitative analysis software.
-  
+This project attempts to convert [ELAN](https://archive.mpi.nl/tla/elan) projects into [REFI-QDA](https://www.qdasoftware.org/wp-content/uploads/2019/09/REFI-QDA-1-5.pdf) compliant projects, so that data collected in ELAN can be used in other qualitative analysis software.  
+
 ## Usage
 The refi.py file is the command-line script.  
-  
-USAGE:  
-python refi.py -f {eaf file input path} -o {qdpx archive output path}  
-  
-ARGUMENTS:  
--f  path to EAF project file / folder that the project is contained in
--o  path of the QDPX archive that will be created  
-  
-EXAMPLE:  
-python refi.py  -f C:\Users\ryanopily\ELAN-PROJECT\elan-project.eaf -o C:\Users\ryanopily\ELAN-PROJECT\elan-project.qdpx. 
-  
+
+**Arguments**  
+-f  (EAF project file or directory path)  
+-o  (output file path)  
+
+**Example**  
+python refi.py -f /PATH/project.eaf -o /PATH/output.qdpx  
+
 ## Dependencies
-[pympi-ling](https://pypi.org/project/pympi-ling/)
-  
-## STRUCTURE
-refi.py   
-    This is the command-line script that invokes the entire conversion process.  
-  
+[pympi-ling](https://pypi.org/project/pympi-ling/)  
+
+## Structure
+refi.py  
+This is the command-line script that invokes the conversion process.  
+
 refi_common.py  
-    Defines utility functions used throughout the project  
-  
+Defines utility functions used throughout the project  
+
 elan_to_refi.py  
-    Converts EAF XML elements to the equivalent REFI-QDA QDPX XML elements.  
-  
+Converts EAF XML elements to the equivalent REFI-QDA QDPX XML elements.  
+
 annotate.py  
-    Creates a transcript from an EAF file that can be linked to a VideoSource in the QDPX archive.  
+Generates a linked transcript that syncs with a video file.  
