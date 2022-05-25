@@ -15,7 +15,7 @@ def invoke(projectDirectory, outputFile):
     pfsx_file = None
     video_files = []
     audio_files = []
-    project_files =
+    project_files = os.listdir(projectDirectory);
 
     # Search for .eaf and .pfsx files in the ELAN Project Directory
     os.chdir(projectDirectory)
